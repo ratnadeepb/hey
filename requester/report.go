@@ -106,14 +106,14 @@ func runReporter(r *report) {
 					r.statusCodes = append(r.statusCodes, res.statusCode)
 					r.offsets = append(r.offsets, res.offset.Seconds())
 				}
-				if res.contentLength > 0 {
-					r.sizeTotal += res.contentLength
-				}
 			} else {
 				// for non 200 responses only note the response
 				if len(r.resLats) < maxRes {
 					r.statusCodes = append(r.statusCodes, res.statusCode)
 				}
+			}
+			if res.contentLength > 0 {
+				r.sizeTotal += res.contentLength
 			}
 		}
 	}
@@ -169,14 +169,14 @@ func (r *report) snapshot() Report {
 		ResLats:     make([]float64, len(r.lats)),
 		DelayLats:   make([]float64, len(r.lats)),
 		Offsets:     make([]float64, len(r.lats)),
-		StatusCodes: make([]int, len(r.lats)),
+		StatusCodes: make([]int, len(r.statusCodes)),
 	}
 
 	if len(r.lats) == 0 {
 		return snapshot
 	}
 
-	snapshot.SizeReq = r.sizeTotal / int64(len(r.lats))
+	snapshot.SizeReq = r.sizeTotal / int64(len(r.statusCodes))
 
 	copy(snapshot.Lats, r.lats)
 	copy(snapshot.ConnLats, r.connLats)
