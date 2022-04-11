@@ -88,24 +88,32 @@ func runReporter(r *report) {
 		if res.err != nil {
 			r.errorDist[res.err.Error()]++
 		} else {
-			r.avgTotal += res.duration.Seconds()
-			r.avgConn += res.connDuration.Seconds()
-			r.avgDelay += res.delayDuration.Seconds()
-			r.avgDNS += res.dnsDuration.Seconds()
-			r.avgReq += res.reqDuration.Seconds()
-			r.avgRes += res.resDuration.Seconds()
-			if len(r.resLats) < maxRes {
-				r.lats = append(r.lats, res.duration.Seconds())
-				r.connLats = append(r.connLats, res.connDuration.Seconds())
-				r.dnsLats = append(r.dnsLats, res.dnsDuration.Seconds())
-				r.reqLats = append(r.reqLats, res.reqDuration.Seconds())
-				r.delayLats = append(r.delayLats, res.delayDuration.Seconds())
-				r.resLats = append(r.resLats, res.resDuration.Seconds())
-				r.statusCodes = append(r.statusCodes, res.statusCode)
-				r.offsets = append(r.offsets, res.offset.Seconds())
-			}
-			if res.contentLength > 0 {
-				r.sizeTotal += res.contentLength
+			// record timing information for only for successful responses
+			if res.statusCode == 200 {
+				r.avgTotal += res.duration.Seconds()
+				r.avgConn += res.connDuration.Seconds()
+				r.avgDelay += res.delayDuration.Seconds()
+				r.avgDNS += res.dnsDuration.Seconds()
+				r.avgReq += res.reqDuration.Seconds()
+				r.avgRes += res.resDuration.Seconds()
+				if len(r.resLats) < maxRes {
+					r.lats = append(r.lats, res.duration.Seconds())
+					r.connLats = append(r.connLats, res.connDuration.Seconds())
+					r.dnsLats = append(r.dnsLats, res.dnsDuration.Seconds())
+					r.reqLats = append(r.reqLats, res.reqDuration.Seconds())
+					r.delayLats = append(r.delayLats, res.delayDuration.Seconds())
+					r.resLats = append(r.resLats, res.resDuration.Seconds())
+					r.statusCodes = append(r.statusCodes, res.statusCode)
+					r.offsets = append(r.offsets, res.offset.Seconds())
+				}
+				if res.contentLength > 0 {
+					r.sizeTotal += res.contentLength
+				}
+			} else {
+				// for non 200 responses only note the response
+				if len(r.resLats) < maxRes {
+					r.statusCodes = append(r.statusCodes, res.statusCode)
+				}
 			}
 		}
 	}
